@@ -60,7 +60,7 @@ footer{margin-top:16px;color:var(--muted);font-size:13px;text-align:center}
     <p class="line"><b>TrustRail settles outcomes.</b> Not requests.</p>
 
     <div class="cards">
-      <a class="card" href="#lineage"><strong>Lineage — AuditAgent</strong><small>TrustRail's no-judge design descends from a prior Colosseum submission, not selected. See what we learned.</small></a>
+      <a class="card" href="#lineage"><strong>Lineage — AuditAgent</strong><small>TrustRail's no-judge design descends from a prior Colosseum submission, not selected. See what I learned.</small></a>
       <a class="card" href="https://github.com/Portaudit/trustrail-pipelines"><strong>Build log — repo + @TheTrustRail</strong><small>Receipts over vibes. Building in public on Solana.</small></a>
       <a class="card" href="#verified"><strong>Verified — Sep 28 gate closed</strong><small>Full settlement flow on devnet, both outcomes, 5 real transactions each, independently decoded.</small></a>
     </div>
@@ -68,7 +68,7 @@ footer{margin-top:16px;color:var(--muted);font-size:13px;text-align:center}
 
   <section id="disclosure">
     <h2>Scope disclosure</h2>
-    <p>The swap step in every run below executes against <strong>mock_swap</strong>, a program we built and deployed ourselves as an explicit stand-in for a real swap venue (fixed-rate, real token transfers, real failure on insufficient pool liquidity — not a simulation). It is not Orca, Jupiter, Raydium, or any production DEX. Full detail: <a href="https://github.com/Portaudit/trustrail-pipelines/blob/main/docs/KNOWN_LIMITATIONS.md" style="color:var(--green)">KNOWN_LIMITATIONS.md</a>.</p>
+    <p>The swap step in every run below executes against <strong>mock_swap</strong>, a program I built and deployed myself as an explicit stand-in for a real swap venue (fixed-rate, real token transfers, real failure on insufficient pool liquidity — not a simulation). It is not Orca, Jupiter, Raydium, or any production DEX. Full detail: <a href="https://github.com/Portaudit/trustrail-pipelines/blob/main/docs/KNOWN_LIMITATIONS.md" style="color:var(--green)">KNOWN_LIMITATIONS.md</a>.</p>
   </section>
 
   <section id="programs">
@@ -117,7 +117,7 @@ npm run get-commitment -- &lt;commitment-address&gt;</pre>
         <tr><td>submit_proof</td><td><a href="https://explorer.solana.com/tx/2DP3LxG8J4Lymy7fEvpxcVGn3DRJV1u3tXEEywPGFb3aquVXMcoutkd7F19PjCHH3UPfuetdFScRNN2DRzLJG1RF?cluster=devnet"><code>2DP3LxG8...JG1RF</code></a></td></tr>
       </table>
       </div>
-      <p class="caveat">Repo state: <code>95cd061</code> — this code was deployed to devnet before that commit was pushed (a known gap in our workflow that night: build → deploy → verify happened first, git catch-up came after). The commit timestamp trails the on-chain deploy; it does not indicate the page claiming ahead of the repo.</p>
+      <p class="caveat">Repo state: <code>95cd061</code> — this code was deployed to devnet before that commit was pushed (a known gap in my workflow that night: build → deploy → verify happened first, git catch-up came after). The commit timestamp trails the on-chain deploy; it does not indicate the page claiming ahead of the repo.</p>
     </div>
 
     <div class="run">
@@ -145,7 +145,7 @@ npm run get-commitment -- &lt;commitment-address&gt;</pre>
 
   <section id="lineage">
     <h2>Lineage</h2>
-    <p>TrustRail's no-judge design descends from AuditAgent — a prior Colosseum submission, not selected — whose semantic-gate verdict taught us that settlement must be spec-matching, never judgment. Frozen history, public corrections: <a href="https://www.theauditagent.xyz/" style="color:var(--green)">theauditagent.xyz</a></p>
+    <p>TrustRail's no-judge design descends from AuditAgent — a prior Colosseum submission, not selected — whose semantic-gate verdict taught me that settlement must be spec-matching, never judgment. Frozen history, public corrections: <a href="https://www.theauditagent.xyz/" style="color:var(--green)">theauditagent.xyz</a></p>
   </section>
 
   <div class="doctrine">The page never claims more than the repo's latest commit; every embedded receipt has a commit that produced it.<br>Current main: <code>5aff213</code> · <a href="https://github.com/Portaudit/trustrail-pipelines" style="color:var(--green)">github.com/Portaudit/trustrail-pipelines</a></div>
