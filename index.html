@@ -4,45 +4,155 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TrustRail — Deterministic Settlement Rails for AI Agent Swarms</title>
-<meta name="description" content="TrustRail: escrow, staged gates, refund on FAIL. Settlement assurance for the agent economy on Solana.">
+<meta name="description" content="TrustRail: escrow, staged verification, refund on FAIL. Deterministic settlement for the agent economy on Solana — no LLM judge in the critical path.">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png"><link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta property="og:title" content="TrustRail — Deterministic Settlement Rails for AI Agent Swarms">
-<meta property="og:description" content="x402 settles requests. TrustRail settles outcomes. Escrow · staged gates · refund on FAIL.">
+<meta property="og:description" content="TrustRail settles outcomes. Not requests. Escrow, staged verification gates, refund on FAIL — verified end-to-end on devnet.">
 <meta property="og:image" content="https://trustrail.live/assets/trustrail-emblem.png">
 <meta property="og:url" content="https://trustrail.live">
 <meta name="twitter:card" content="summary_large_image">
 <style>
-:root{--bg:#070b14;--panel:#0d1524;--purple:#8b5cf6;--green:#34d399;--text:#e6edf7;--muted:#93a4bd}
+:root{--bg:#070b14;--panel:#0d1524;--purple:#8b5cf6;--green:#34d399;--red:#f87171;--text:#e6edf7;--muted:#93a4bd;--border:#1e2a44}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-main{max-width:880px;text-align:center}
-img.emblem{display:block;width:min(300px,55%);height:auto;margin:0 auto 20px;filter:drop-shadow(0 0 26px rgba(52,211,153,.25))}
-h1.brand{font-size:clamp(48px,9vw,84px);letter-spacing:-.02em;line-height:1.05}
-p.brandline{margin-top:10px;font-size:clamp(18px,3vw,26px);font-weight:600;color:var(--muted)}
-.line{margin:26px 0;font-size:20px;font-weight:600}
+body{background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;min-height:100vh;padding:24px}
+main{max-width:880px;margin:0 auto}
+.hero{text-align:center;margin-bottom:36px}
+img.emblem{display:block;width:min(260px,55%);height:auto;margin:0 auto 16px;filter:drop-shadow(0 0 26px rgba(52,211,153,.25))}
+h1.brand{font-size:clamp(40px,8vw,72px);letter-spacing:-.02em;line-height:1.05}
+p.brandline{margin-top:8px;font-size:clamp(16px,2.6vw,22px);font-weight:600;color:var(--muted)}
+.line{margin:20px 0 0;font-size:18px;font-weight:600}
 .line b{color:var(--green)}
-ul{list-style:none;color:var(--muted);font-size:15px;display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
-.cards{margin-top:30px;display:grid;gap:12px}
-a.card{display:block;background:var(--panel);border:1px solid #1e2a44;border-radius:12px;padding:16px;color:var(--text);text-decoration:none;text-align:left;transition:border-color .15s}
+.cards{margin-top:26px;display:grid;gap:12px}
+a.card{display:block;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;color:var(--text);text-decoration:none;text-align:left;transition:border-color .15s}
 a.card:hover{border-color:var(--purple)}
 a.card strong{color:var(--purple)}
 a.card small{display:block;color:var(--muted);margin-top:4px}
-footer{margin-top:32px;color:var(--muted);font-size:13px}
-img.footer-art{display:block;height:180px;width:auto;margin:26px auto 6px;opacity:.92;-webkit-mask-image:linear-gradient(90deg,transparent,black 18%,black 82%,transparent);mask-image:linear-gradient(90deg,transparent,black 18%,black 82%,transparent)}</style>
+section{margin-top:40px}
+section h2{font-size:22px;color:var(--purple);margin-bottom:12px}
+section p{color:var(--muted);font-size:15px;line-height:1.6;margin-bottom:8px}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:1px 6px}
+pre{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.7;color:var(--text)}
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;font-size:13px}
+td a{color:var(--green);text-decoration:none}
+td a:hover{text-decoration:underline}
+.run{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-top:16px}
+.run h3{font-size:17px;margin-bottom:6px}
+.run h3.passed{color:var(--green)}
+.run h3.failed{color:var(--red)}
+.run .meta{color:var(--muted);font-size:13px;margin-bottom:10px}
+.run .caveat{margin-top:10px;font-size:12px;color:var(--muted);font-style:italic}
+.tablewrap{overflow-x:auto}
+.doctrine{margin-top:40px;padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--panel);color:var(--muted);font-size:13px;font-style:italic;text-align:center}
+img.footer-art{display:block;height:160px;width:auto;margin:36px auto 6px;opacity:.92;-webkit-mask-image:linear-gradient(90deg,transparent,black 18%,black 82%,transparent);mask-image:linear-gradient(90deg,transparent,black 18%,black 82%,transparent)}
+footer{margin-top:16px;color:var(--muted);font-size:13px;text-align:center}
+@media (max-width:600px){section h2{font-size:19px}}
+</style>
 </head>
 <body>
 <main>
-  <img class="emblem" src="assets/trustrail-emblem.webp" alt="TrustRail emblem — shield with settlement rails">
-  <h1 class="brand">TrustRail</h1>
-  <p class="brandline">Deterministic Settlement Rails for AI Agent Swarms</p>
-  <p class="line">x402 settles requests. <b>TrustRail settles outcomes.</b></p>
-  <ul><li>Escrow</li><li>Staged gates</li><li>Refund on FAIL</li></ul>
-  <div class="cards">
-    <a class="card" href="https://theauditagent.xyz"><strong>Lineage — AuditAgent</strong><small>Escrow + semantic audit gate · 2% toll, 100% refund on FAIL · devnet-live · Submitted to Colosseum Eternal, not selected</small></a>
-    <a class="card" href="https://github.com/Portaudit/trustrail-pipelines"><strong>Build log — repo + @TheTrustRail</strong><small>Receipts over vibes. Building in public on Solana.</small></a>
-      <a class="card" href="https://github.com/Portaudit/trustrail-pipelines#readme"><strong>Verified — Sep 28 gate closed</strong><small>Full settlement flow on devnet, both outcomes (Passed \& FailedSlippage), 5 real transactions each, independently decoded. Swap step is a disclosed mock_swap stand-in, not a live venue.</small></a>
+
+  <div class="hero">
+    <img class="emblem" src="assets/trustrail-emblem.webp" alt="TrustRail emblem — shield with settlement rails">
+    <h1 class="brand">TrustRail</h1>
+    <p class="brandline">Deterministic Settlement Rails for AI Agent Swarms</p>
+    <p class="line"><b>TrustRail settles outcomes.</b> Not requests.</p>
+
+    <div class="cards">
+      <a class="card" href="#lineage"><strong>Lineage — AuditAgent</strong><small>TrustRail's no-judge design descends from a prior Colosseum submission, not selected. See what we learned.</small></a>
+      <a class="card" href="https://github.com/Portaudit/trustrail-pipelines"><strong>Build log — repo + @TheTrustRail</strong><small>Receipts over vibes. Building in public on Solana.</small></a>
+      <a class="card" href="#verified"><strong>Verified — Sep 28 gate closed</strong><small>Full settlement flow on devnet, both outcomes, 5 real transactions each, independently decoded.</small></a>
+    </div>
   </div>
-  <img class="footer-art" src="assets/footer-art.png" alt="Sentinel artwork — © Ishvir and Company (Pty) Ltd"><footer>Status: pre-mainnet · © Ishvir and Company (Pty) Ltd · 🏛️</footer>
+
+  <section id="disclosure">
+    <h2>Scope disclosure</h2>
+    <p>The swap step in every run below executes against <strong>mock_swap</strong>, a program we built and deployed ourselves as an explicit stand-in for a real swap venue (fixed-rate, real token transfers, real failure on insufficient pool liquidity — not a simulation). It is not Orca, Jupiter, Raydium, or any production DEX. Full detail: <a href="https://github.com/Portaudit/trustrail-pipelines/blob/main/docs/KNOWN_LIMITATIONS.md" style="color:var(--green)">KNOWN_LIMITATIONS.md</a>.</p>
+  </section>
+
+  <section id="programs">
+    <h2>Programs (devnet)</h2>
+    <div class="tablewrap">
+    <table>
+      <tr><th>Program</th><th>ID</th><th>Last deployed slot</th></tr>
+      <tr><td><code>trustrail_pipelines</code></td><td><a href="https://explorer.solana.com/address/CgXidrtsV5nLkjPCYhZUPUuZUpmvekMKvDN9uh3ucoC8?cluster=devnet"><code>CgXidrts...ucoC8</code></a></td><td>503178282</td></tr>
+      <tr><td><code>mock_swap</code> (disclosed stand-in)</td><td><a href="https://explorer.solana.com/address/3qqN3ZXc1SPEtDLdn9Ek68r9YtDc1mBVgdhS7r48d9vJ?cluster=devnet"><code>3qqN3ZXc...9vJ</code></a></td><td>503154063</td></tr>
+    </table>
+    </div>
+  </section>
+
+  <section id="try-it">
+    <h2>Try it yourself</h2>
+    <p>Requires: Node 20+, a funded Solana devnet keypair (<code>solana airdrop</code> works), Anchor CLI if you want to rebuild from source.</p>
+    <pre>git clone https://github.com/Portaudit/trustrail-pipelines
+cd trustrail-pipelines/worker
+npm install
+npm run create-commitment
+npm run withdraw-for-swap
+npm run execute-mock-swap
+npm run submit-proof
+npm run get-commitment -- &lt;commitment-address&gt;</pre>
+    <p>These are the exact scripts in <code>worker/package.json</code> — nothing here is simplified from what's actually in the repo.</p>
+  </section>
+
+  <section id="verified">
+    <h2>Verified runs</h2>
+    <p>Each run below is the full settlement flow — commitment → escrow withdrawal → swap → deterministic verification → release/refund — independently decoded from raw on-chain account bytes, not inferred from script output. Five transactions per run: creating the staging account is its own step, separate from the swap execution.</p>
+
+    <div class="run">
+      <h3 class="passed">Run A — Passed</h3>
+      <div class="meta">
+        task_id: <code>a7c709942f0542765cea54444823f7d4a5606d62575b4a71de02209a08deb96c</code><br>
+        commitment: <a href="https://explorer.solana.com/address/DeoSo4Dy3hQ8R9GgpgeXdXNgAYkcy6nyFRbThDGUB3Ur?cluster=devnet"><code>DeoSo4Dy...GUB3Ur</code></a><br>
+        final state: <code>status: Passed</code>, <code>escrowWithdrawn: true</code>
+      </div>
+      <div class="tablewrap">
+      <table>
+        <tr><th>Step</th><th>Tx</th></tr>
+        <tr><td>createStagingAccount</td><td><a href="https://explorer.solana.com/tx/4EX3mHHCpEvsQE2yJpJajKpMqVbNJxF35B75fJLHExMyP6w76GkWKaLUGaL5SDgnvALwffxbJoUcdSQr8qEKK3hT?cluster=devnet"><code>4EX3mHHC...EKK3hT</code></a></td></tr>
+        <tr><td>create_commitment</td><td><a href="https://explorer.solana.com/tx/4PzKMc8cZwgAH9umySMaCjJQKLjXs5ooeW7C1nLd93Mntm4ahtyCC46MwDtGYDYpSvTgcM9bDnv8PnBu8o7ivHPs?cluster=devnet"><code>4PzKMc8c...o7ivHPs</code></a></td></tr>
+        <tr><td>withdraw_for_swap</td><td><a href="https://explorer.solana.com/tx/3WJGHca2GJcjsBMBHQmN1SHhBEJsDWK9kfFNesX8HcPQDDGJzMsLQWDyAm1Se1MKi3s3NEj4pm1yy6VQ7cTcUKAF?cluster=devnet"><code>3WJGHca2...7cTcUKAF</code></a></td></tr>
+        <tr><td>mock_swap_execute</td><td><a href="https://explorer.solana.com/tx/3zFdaa8PfGFMVg6FCnwt6ULH9jifzcT8vrtAxpNaPtQqYuWfT455qCgTmToJMRwmZuWjtMhu3ZjUznor1HqXBhJS?cluster=devnet"><code>3zFdaa8P...1HqXBhJS</code></a></td></tr>
+        <tr><td>submit_proof</td><td><a href="https://explorer.solana.com/tx/2DP3LxG8J4Lymy7fEvpxcVGn3DRJV1u3tXEEywPGFb3aquVXMcoutkd7F19PjCHH3UPfuetdFScRNN2DRzLJG1RF?cluster=devnet"><code>2DP3LxG8...JG1RF</code></a></td></tr>
+      </table>
+      </div>
+      <p class="caveat">Repo state: <code>95cd061</code> — this code was deployed to devnet before that commit was pushed (a known gap in our workflow that night: build → deploy → verify happened first, git catch-up came after). The commit timestamp trails the on-chain deploy; it does not indicate the page claiming ahead of the repo.</p>
+    </div>
+
+    <div class="run">
+      <h3 class="failed">Run B — FailedSlippage</h3>
+      <div class="meta">
+        task_id: <code>b66b8e4b7f479828d25d8b2c4cf1e8f9352c1953b978f03fca7433845ca82ad9</code><br>
+        commitment: <a href="https://explorer.solana.com/address/HAi7f8Qf5AsJCSre5ruqMZQ6RchLG6TTuUPKogHMyiPA?cluster=devnet"><code>HAi7f8Qf...HMyiPA</code></a><br>
+        final state: <code>status: FailedSlippage</code>, <code>escrowWithdrawn: true</code>
+      </div>
+      <div class="tablewrap">
+      <table>
+        <tr><th>Step</th><th>Tx</th></tr>
+        <tr><td>createStagingAccount</td><td><a href="https://explorer.solana.com/tx/Se7KyABQzwwrujfcLkzq87VVKH4KtpaQVVKPa8vCo94XqEimmFeCTwdwcDbyrPHpRq21eFhQAg8CtJVxXmXinTC?cluster=devnet"><code>Se7KyABQ...XmXinTC</code></a></td></tr>
+        <tr><td>create_commitment</td><td><a href="https://explorer.solana.com/tx/3FEYZcuHTvzp9dWYCcXbhrUHr2k7J4MFEQ1HJhwYDi3GGeJt6P4H169L8Mnqhe5iPuA9PikPHj8j7EGWsTMHh3x9?cluster=devnet"><code>3FEYZcuH...EGWsTMHh3x9</code></a></td></tr>
+        <tr><td>withdraw_for_swap</td><td><a href="https://explorer.solana.com/tx/3RvEgZnhqDK2ozPoNBeA6pE9uZ8v7hafyGi7kPmjd8QJC1CwLiF4zFWTfnr11crxXMoC7MdCWAKnWjneMEN34XSs?cluster=devnet"><code>3RvEgZnh...MEN34XSs</code></a></td></tr>
+        <tr><td>mock_swap_execute</td><td><a href="https://explorer.solana.com/tx/dDGNfRD2Ecate3xj2qjyo79bK4BFgerLxSHrLpWDtLPxmizGgR9iL8gpRcZc75nFWri3M7ortM6uwibZwPtFWne?cluster=devnet"><code>dDGNfRD2...FWne</code></a></td></tr>
+        <tr><td>submit_proof</td><td><a href="https://explorer.solana.com/tx/3zHeaUESpu4LZ235MKTF5N3SC5DtfVX5SgVQypezJDbmt9hebXS1HAST6gEWbm2v625Zwx2mmevKeSzZkj13b6yo?cluster=devnet"><code>3zHeaUES...Zkj13b6yo</code></a></td></tr>
+      </table>
+      </div>
+      <p class="caveat">Repo state: <code>95cd061</code> — same caveat as Run A above.</p>
+    </div>
+
+    <p style="margin-top:14px;font-size:13px">This section is appended to, not rewritten. Once real swap-venue CPI is green, Run C joins here and the scope disclosure above is amended — never softened, only added to.</p>
+  </section>
+
+  <section id="lineage">
+    <h2>Lineage</h2>
+    <p>TrustRail's no-judge design descends from AuditAgent — a prior Colosseum submission, not selected — whose semantic-gate verdict taught us that settlement must be spec-matching, never judgment. Frozen history, public corrections: <a href="https://www.theauditagent.xyz/" style="color:var(--green)">theauditagent.xyz</a></p>
+  </section>
+
+  <div class="doctrine">The page never claims more than the repo's latest commit; every embedded receipt has a commit that produced it.<br>Current main: <code>5aff213</code> · <a href="https://github.com/Portaudit/trustrail-pipelines" style="color:var(--green)">github.com/Portaudit/trustrail-pipelines</a></div>
+
+  <img class="footer-art" src="assets/footer-art.png" alt="Sentinel artwork — © Ishvir and Company (Pty) Ltd">
+  <footer>Status: pre-mainnet · © Ishvir and Company (Pty) Ltd · 🏛️</footer>
+
 </main>
 </body>
 </html>
