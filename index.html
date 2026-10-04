@@ -94,6 +94,7 @@ npm run execute-mock-swap
 npm run submit-proof
 npm run get-commitment -- &lt;commitment-address&gt;</pre>
     <p>These are the exact scripts in <code>worker/package.json</code> — nothing here is simplified from what's actually in the repo.</p>
+    <p>Optional: set <code>RPC_URL</code> to your own devnet RPC endpoint (the public devnet endpoint can fail under load). If unset, the scripts fall back to the public devnet.</p>
   </section>
 
   <section id="verified">
@@ -148,7 +149,7 @@ npm run get-commitment -- &lt;commitment-address&gt;</pre>
     <p>TrustRail's no-judge design descends from AuditAgent — a prior Colosseum submission, not selected — whose semantic-gate verdict taught me that settlement must be spec-matching, never judgment. Frozen history, public corrections: <a href="https://www.theauditagent.xyz/" style="color:var(--green)">theauditagent.xyz</a></p>
   </section>
 
-  <div class="doctrine">The page never claims more than the repo's latest commit; every embedded receipt has a commit that produced it.<br>Current main: <code>5aff213</code> · <a href="https://github.com/Portaudit/trustrail-pipelines" style="color:var(--green)">github.com/Portaudit/trustrail-pipelines</a></div>
+  <div class="doctrine">The page never claims more than the repo's latest commit; every embedded receipt has a commit that produced it.<br>Current main: <code>cfea675</code> · <a href="https://github.com/Portaudit/trustrail-pipelines" style="color:var(--green)">github.com/Portaudit/trustrail-pipelines</a></div>
 
   <img class="footer-art" src="assets/footer-art.png" alt="Sentinel artwork — © Ishvir and Company (Pty) Ltd">
   <footer>Status: pre-mainnet · © Ishvir and Company (Pty) Ltd · 🏛️</footer>
