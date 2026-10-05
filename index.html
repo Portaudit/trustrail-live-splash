@@ -76,7 +76,7 @@ footer{margin-top:16px;color:var(--muted);font-size:14px;text-align:center}
     <div class="tablewrap">
     <table>
       <tr><th>Program</th><th>ID</th><th>Last deployed slot</th></tr>
-      <tr><td><code>trustrail_pipelines</code></td><td><a href="https://explorer.solana.com/address/CgXidrtsV5nLkjPCYhZUPUuZUpmvekMKvDN9uh3ucoC8?cluster=devnet"><code>CgXidrts...ucoC8</code></a></td><td>507558273</td></tr>
+      <tr><td><code>trustrail_pipelines</code></td><td><a href="https://explorer.solana.com/address/CgXidrtsV5nLkjPCYhZUPUuZUpmvekMKvDN9uh3ucoC8?cluster=devnet"><code>CgXidrts...ucoC8</code></a></td><td>507592632</td></tr>
       <tr><td><code>mock_swap</code> (disclosed stand-in)</td><td><a href="https://explorer.solana.com/address/3qqN3ZXc1SPEtDLdn9Ek68r9YtDc1mBVgdhS7r48d9vJ?cluster=devnet"><code>3qqN3ZXc...9vJ</code></a></td><td>503154063</td></tr>
     </table>
     </div>
@@ -94,8 +94,8 @@ npm run execute-mock-swap
 npm run submit-proof
 npm run get-commitment -- &lt;commitment-address&gt;</pre>
     <p>These are the exact scripts in <code>worker/package.json</code> — nothing here is simplified from what's actually in the repo.</p>
-    <p>Recovery is not an npm script. From <code>worker/</code>, with a separate keypair file as settler (it must not be the commitment's payer): <code>SETTLER_KEYPAIR=&lt;path&gt; npx tsx src/recover.ts &lt;commitment-address&gt;</code>. It only applies to a FailedSlippage commitment whose escrow was withdrawn, and it needs the upgraded program that is on devnet now.</p>
-    <p>Run B used an input of 300000 and a floor of 500000. The committed <code>create-commitment.ts</code> and <code>execute-mock-swap.ts</code> hardcode an input of 1,000,000 (the 500,000 floor is the same), so the commands above will not reproduce Run B's input amount.</p>
+    <p>Recovery and cancel are not npm scripts. From <code>worker/</code>, with a separate keypair file as settler (it must not be the commitment's payer; the scripts refuse that, it is a script choice and not a program rule): <code>SETTLER_KEYPAIR=&lt;path&gt; npx tsx src/recover.ts &lt;commitment-address&gt;</code> or <code>SETTLER_KEYPAIR=&lt;path&gt; npx tsx src/cancel.ts &lt;commitment-address&gt;</code>. <code>recover</code> applies to a FailedSlippage commitment whose escrow was withdrawn, or to a Locked one with the escrow withdrawn and no proof stamped, once the deadline slot has passed. <code>cancel</code> applies to a Locked commitment whose escrow was never withdrawn, after the deadline.</p>
+    <p>Run B used an input of 300000 and a floor of 500000. When it ran, the scripts hardcoded an input of 1,000,000. They now read <code>INPUT_AMOUNT</code>, <code>MIN_OUTPUT_AMOUNT</code> and <code>DEADLINE_SLOTS</code> from the environment (defaults 1,000,000, 500,000 and 5000 slots), so Run B's input can be reproduced, and Run C used <code>INPUT_AMOUNT=250000 DEADLINE_SLOTS=900</code>.</p>
     <p>Optional: set <code>RPC_URL</code> to your own devnet RPC endpoint (the public devnet endpoint can fail under load). If unset, the scripts fall back to the public devnet.</p>
   </section>
 
@@ -152,9 +152,64 @@ npm run get-commitment -- &lt;commitment-address&gt;</pre>
       <p class="caveat">Repo state: <code>80c3d18</code> — the binary behind these two transactions was built locally with <code>anchor build</code> from those sources, and no tracked file was modified after the build (by file timestamps). It is not a verifiable or reproducible build.</p>
     </div>
 
-    <p class="caveat"><strong>Correction, Oct 5, 2026:</strong> earlier versions of this page described the flow as ending in release/refund, called the page's devnet runs "verified end-to-end", and said "refund on FAIL". That overstated it. Runs A and B end at the recorded verdict (Passed, FailedSlippage). <code>release</code>, <code>refund</code> and <code>cancel</code> exist in the program, but I have not exercised them in tests or in either documented devnet run (Runs A and B). The page description, the social description and the flow sentence have been changed to match.</p>
+        <div class="run">
+      <h3>Run C — recover on a Locked commitment after the deadline (Oct 5)</h3>
+      <div class="meta">
+        commitment: <a href="https://explorer.solana.com/address/4ywZV4cW67iic82FcY3bcxzPamvczxeMXx88ep9tAFFu?cluster=devnet"><code>4ywZV4cW...9tAFFu</code></a><br>
+        input 250000, minimum output 500000, deadline 900 slots (create landed in slot 507593103, deadline 507593999)
+      </div>
+      <p>I moved the staging key out of the worker folder first. <code>withdraw_for_swap</code> moved 250000 from escrow to staging. An early <code>recover</code> at slot 507593356 failed with <code>0x1775</code> (DeadlineNotReached) and changed nothing. After the deadline a settler that is not the payer recovered it in slot 507594044: payer input 700000 to 950000, escrow and output accounts closed, staging 0, status <code>Recovered</code>, and no worker key involved. A second <code>recover</code> failed with <code>AccountNotInitialized</code> (3012, <code>0xbc4</code>) and the status stayed <code>Recovered</code>. Reading the staging account afterwards, its delegate allowance was 18446744073709301615: approved for u64::MAX, reduced by the 250000 that recover pulled.</p>
+      <div class="tablewrap">
+      <table>
+        <tr><th>Step</th><th>Tx</th></tr>
+        <tr><td>create_commitment</td><td><a href="https://explorer.solana.com/tx/2dJPE5YxrYGD4b5dQe8S7xJJb5x3VGUhhN7fURaG9TWCQLrbrA7WzRPfWZ6LGooN7R4RJdvLUNMHeT3pB8rrXMPM?cluster=devnet"><code>2dJPE5Yx...8rrXMPM</code></a></td></tr>
+        <tr><td>withdraw_for_swap</td><td><a href="https://explorer.solana.com/tx/5FX7Zx2DjYx4fj5ZY9rfn6U64c7UiQjv7iJCeUTJghTKNYKL9mKpyr2BQMPaj2YdQTp7rRwF7GB1dLvQr6t6pQaE?cluster=devnet"><code>5FX7Zx2D...6t6pQaE</code></a></td></tr>
+        <tr><td>recover (after deadline)</td><td><a href="https://explorer.solana.com/tx/5ZuvUcFtCuzqVnFGJZDJWVF5biQFGVrQHBdUse9UnzS4kG57P8431GrKL4JV1bNW3utXM1KbBKCJtzb7jUNUoUVi?cluster=devnet"><code>5ZuvUcFt...UNUoUVi</code></a></td></tr>
+      </table>
+      </div>
+      <p class="caveat">Repo state: <code>457165a</code> — the deployed binary was built locally from those sources (file timestamps and a dump-hash check after the upgrade); it is not a reproducible build.</p>
+    </div>
 
-    <p style="margin-top:14px;font-size:13px">This section is appended to, not rewritten. Once real swap-venue CPI is green, Run C joins here and the scope disclosure above is amended — never softened, only added to.</p>
+    <div class="run">
+      <h3>Run C2 — staging guard, then cancel (Oct 5)</h3>
+      <div class="meta">
+        commitment: <a href="https://explorer.solana.com/address/ByYUeb7Fr2nbLpf6n75dgK5oq2WttUhMBDxqe3it2eXV?cluster=devnet"><code>ByYUeb7F...it2eXV</code></a><br>
+        input 200000, minimum output 500000, deadline 1500 slots
+      </div>
+      <p>The staging key revoked the delegate. <code>withdraw_for_swap</code> then failed with <code>0x177b</code> (StagingNotPullable) in simulation, so nothing was sent and escrow still held 200000. After the deadline, <code>cancel</code> by a settler that is not the payer (slot 507596533): escrow 200000 to closed, payer input 950000 to 1150000, status <code>TimedOut</code>.</p>
+      <div class="tablewrap">
+      <table>
+        <tr><th>Step</th><th>Tx</th></tr>
+        <tr><td>create_commitment</td><td><a href="https://explorer.solana.com/tx/5P4tbsW1gegpsK3fqwnRN2orp62zHtpuxddhNKS8uHM1iiUBJF6yMJtJPf9Y3RLdBvViHAC11ENC13PYnGVp8vyY?cluster=devnet"><code>5P4tbsW1...GVp8vyY</code></a></td></tr>
+        <tr><td>revoke delegate</td><td><a href="https://explorer.solana.com/tx/33wR5cPPjnjdMBT3uB4fZGBqLwsqKy9DhdgzyUZFwuXWzLE4cz22rCbLDAvBY6rwbnks2kRTBmzZyiuRHr7AeYnf?cluster=devnet"><code>33wR5cPP...r7AeYnf</code></a></td></tr>
+        <tr><td>cancel (after deadline)</td><td><a href="https://explorer.solana.com/tx/CaRXK5SUBowfrbU8zvr3CLtZNfyVBqU8CsfoAjnTtkosyyd1X2YJXgUxM6v8s6bPUCgGyHqbybxyWe4CZux9LfG?cluster=devnet"><code>CaRXK5SU...Zux9LfG</code></a></td></tr>
+      </table>
+      </div>
+      <p class="caveat">Repo state: <code>457165a</code> — same build note as Run C.</p>
+    </div>
+
+    <div class="run">
+      <h3 class="passed">Run D — normal path with the delegate in place (Oct 5)</h3>
+      <div class="meta">
+        commitment: <a href="https://explorer.solana.com/address/5zrxT6AdAfms6UbYKipi4AVxo4Yp4cXXNmN9RoyPhre2?cluster=devnet"><code>5zrxT6Ad...yPhre2</code></a><br>
+        final state: <code>status: Passed</code>
+      </div>
+      <p>This run reached Passed. I left it unreleased on purpose: <code>release</code> has not been exercised in any documented devnet run. The <code>proofTx</code> field in the decoded account is random bytes, not a transaction, so none of the receipts cite it.</p>
+      <div class="tablewrap">
+      <table>
+        <tr><th>Step</th><th>Tx</th></tr>
+        <tr><td>create_commitment</td><td><a href="https://explorer.solana.com/tx/LFLceLhx8KCH4CuRft7cgYnivCnZ4GxcQSt9zAbuPFwcmuVBnNtBAed2hKYCd2dxqcexBMCrSAMhoksscuNK1tY?cluster=devnet"><code>LFLceLhx...cuNK1tY</code></a></td></tr>
+        <tr><td>withdraw_for_swap</td><td><a href="https://explorer.solana.com/tx/22YP1vqJQUtxALj1HoCkoAaaRQsZKdhpX48aaMD5zx8ZPH637CiFkRyHP6ipvY7FjdXHA7ViUBGXKpDfWmiKEPRr?cluster=devnet"><code>22YP1vqJ...miKEPRr</code></a></td></tr>
+        <tr><td>mock_swap_execute</td><td><a href="https://explorer.solana.com/tx/3NmMnH1fYnCzu3zBz2reBvq3RMNMDjaZXU97JVUpW9zCEvCt5NUVVNpUKZ1LvzgbPXQXpY3SL32oqL4NSjucbQbU?cluster=devnet"><code>3NmMnH1f...jucbQbU</code></a></td></tr>
+        <tr><td>submit_proof</td><td><a href="https://explorer.solana.com/tx/66LyJSn2YuSb8KmaTiBfZht91LJeTrtjKwPmg9bAxi3415zFDzBBU4GPyDBjdhcCqzCn7dMu29i1UXwnum2qvLVM?cluster=devnet"><code>66LyJSn2...m2qvLVM</code></a></td></tr>
+      </table>
+      </div>
+      <p class="caveat">Repo state: <code>457165a</code> — same build note as Run C.</p>
+    </div>
+
+    <p class="caveat"><strong>Correction, Oct 5, 2026:</strong> earlier versions of this page described the flow as ending in release/refund, called the page's devnet runs "verified end-to-end", and said "refund on FAIL". That overstated it. Run A and Run D end at Passed; Run B reached FailedSlippage and was then recovered; Run C was recovered after its deadline; Run C2 was cancelled after its deadline. <code>cancel</code> is now exercised: in the litesvm tests and in devnet Run C2. <code>release</code> and <code>refund</code> exist in the program, but I have not exercised them in any documented devnet run. <code>refund</code> is reachable only for a FailedSlippage commitment whose escrow was never withdrawn, and the normal worker flow withdraws first, so those runs exit through <code>recover</code>. The page description, the social description and the flow sentence have been changed to match. None of this shows a complete settlement, release included, working end to end.</p>
+
+    <p style="margin-top:14px;font-size:13px">This section is appended to, not rewritten. Once real swap-venue CPI is green, a run against it joins here and the scope disclosure above is amended — never softened, only added to.</p>
   </section>
 
   <section id="lineage">
@@ -162,7 +217,7 @@ npm run get-commitment -- &lt;commitment-address&gt;</pre>
     <p>TrustRail's no-judge design descends from AuditAgent — a prior Colosseum submission, not selected — whose semantic-gate verdict taught me that settlement must be spec-matching, never judgment. Frozen history, public corrections: <a href="https://www.theauditagent.xyz/" style="color:var(--green)">theauditagent.xyz</a></p>
   </section>
 
-  <div class="doctrine">The page never claims more than the repo's latest commit; every embedded receipt has a commit that produced it.<br>Current main: <code>162bd9e</code> · Deployed program code: <code>80c3d18</code> · <a href="https://github.com/Portaudit/trustrail-pipelines" style="color:var(--green)">github.com/Portaudit/trustrail-pipelines</a></div>
+  <div class="doctrine">The page never claims more than the repo's latest commit; every embedded receipt has a commit that produced it.<br>Current main: <code>5bad864</code> · Deployed program code: <code>457165a</code> · <a href="https://github.com/Portaudit/trustrail-pipelines" style="color:var(--green)">github.com/Portaudit/trustrail-pipelines</a></div>
 
   <img class="footer-art" src="assets/footer-art.png" alt="Sentinel artwork — © Ishvir and Company (Pty) Ltd">
   <footer>Status: pre-mainnet · © Ishvir and Company (Pty) Ltd · 🏛️</footer>
