@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TrustRail — Deterministic Settlement Rails for AI Agent Swarms</title>
-<meta name="description" content="TrustRail: escrow, staged verification, refund on FAIL. Deterministic settlement for the agent economy on Solana — no LLM judge in the critical path.">
+<meta name="description" content="TrustRail: escrow, staged verification, a recorded pass/fail verdict. Deterministic settlement for the agent economy on Solana — no LLM judge in the critical path.">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png"><link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta property="og:title" content="TrustRail — Deterministic Settlement Rails for AI Agent Swarms">
-<meta property="og:description" content="TrustRail settles outcomes. Not requests. Escrow, staged verification gates, refund on FAIL — verified end-to-end on devnet.">
+<meta property="og:description" content="TrustRail settles outcomes. Not requests. Escrow, staged verification gates, a recorded pass/fail verdict — two devnet runs (Passed, FailedSlippage) decoded from on-chain state.">
 <meta property="og:image" content="https://trustrail.live/assets/trustrail-emblem.png">
 <meta property="og:url" content="https://trustrail.live">
 <meta name="twitter:card" content="summary_large_image">
@@ -76,7 +76,7 @@ footer{margin-top:16px;color:var(--muted);font-size:14px;text-align:center}
     <div class="tablewrap">
     <table>
       <tr><th>Program</th><th>ID</th><th>Last deployed slot</th></tr>
-      <tr><td><code>trustrail_pipelines</code></td><td><a href="https://explorer.solana.com/address/CgXidrtsV5nLkjPCYhZUPUuZUpmvekMKvDN9uh3ucoC8?cluster=devnet"><code>CgXidrts...ucoC8</code></a></td><td>503178282</td></tr>
+      <tr><td><code>trustrail_pipelines</code></td><td><a href="https://explorer.solana.com/address/CgXidrtsV5nLkjPCYhZUPUuZUpmvekMKvDN9uh3ucoC8?cluster=devnet"><code>CgXidrts...ucoC8</code></a></td><td>507558273</td></tr>
       <tr><td><code>mock_swap</code> (disclosed stand-in)</td><td><a href="https://explorer.solana.com/address/3qqN3ZXc1SPEtDLdn9Ek68r9YtDc1mBVgdhS7r48d9vJ?cluster=devnet"><code>3qqN3ZXc...9vJ</code></a></td><td>503154063</td></tr>
     </table>
     </div>
@@ -94,12 +94,14 @@ npm run execute-mock-swap
 npm run submit-proof
 npm run get-commitment -- &lt;commitment-address&gt;</pre>
     <p>These are the exact scripts in <code>worker/package.json</code> — nothing here is simplified from what's actually in the repo.</p>
+    <p>Recovery is not an npm script. From <code>worker/</code>, with a separate keypair file as settler (it must not be the commitment's payer): <code>SETTLER_KEYPAIR=&lt;path&gt; npx tsx src/recover.ts &lt;commitment-address&gt;</code>. It only applies to a FailedSlippage commitment whose escrow was withdrawn, and it needs the upgraded program that is on devnet now.</p>
+    <p>Run B used an input of 300000 and a floor of 500000. The committed <code>create-commitment.ts</code> and <code>execute-mock-swap.ts</code> hardcode an input of 1,000,000 (the 500,000 floor is the same), so the commands above will not reproduce Run B's input amount.</p>
     <p>Optional: set <code>RPC_URL</code> to your own devnet RPC endpoint (the public devnet endpoint can fail under load). If unset, the scripts fall back to the public devnet.</p>
   </section>
 
   <section id="verified">
     <h2>Verified runs</h2>
-    <p>Each run below is the full settlement flow — commitment → escrow withdrawal → swap → deterministic verification → release/refund — independently decoded from raw on-chain account bytes, not inferred from script output. Five transactions per run: creating the staging account is its own step, separate from the swap execution.</p>
+    <p>Each run below is the flow up to the recorded verdict — commitment → escrow withdrawal → swap → deterministic verification (Passed or FailedSlippage) — independently decoded from raw on-chain account bytes, not inferred from script output. Five transactions per run: creating the staging account is its own step, separate from the swap execution.</p>
 
     <div class="run">
       <h3 class="passed">Run A — Passed</h3>
@@ -139,7 +141,18 @@ npm run get-commitment -- &lt;commitment-address&gt;</pre>
       </table>
       </div>
       <p class="caveat">Repo state: <code>95cd061</code> — same caveat as Run A above.</p>
+      <p style="margin-top:14px"><strong>Update, Oct 5, 2026: recovered.</strong> I recovered this commitment after the receipts above were recorded. The five receipts and the final-state line above were true when those transactions ran and are unchanged; the commitment's status is now <code>Recovered</code>. Before recovery: escrow 0, output account 300000, staging 0, payer output account absent. After: escrow and output accounts closed, staging 0, payer output account 300000, payer input account unchanged at 700000. A settler that is not the payer signed it. Only the swap output came back. This is recovery of stuck proceeds, not a refund: the 300000 input went into the mock pool during the run.</p>
+      <div class="tablewrap">
+      <table>
+        <tr><th>Step</th><th>Tx</th></tr>
+        <tr><td>program upgrade (adds <code>recover</code>)</td><td><a href="https://explorer.solana.com/tx/2BuVAHtPr3JpgSVC4hBngf95kLMkMYrp8T1RVZ6CUJesvBjskrmXocL7EUKj8nkbzM8DfpgA5SLnCQCEU3Vg6fqM?cluster=devnet"><code>2BuVAHtP...3Vg6fqM</code></a></td></tr>
+        <tr><td>recover</td><td><a href="https://explorer.solana.com/tx/2LZ3VqM99NPCW5bDeSjXxfQVm2P5WvLUpY6Y6CEv4G5UjftGHtPsbTMZWsfb96cK5t2V91LZhbuCWzufahpr4R2C?cluster=devnet"><code>2LZ3VqM9...hpr4R2C</code></a></td></tr>
+      </table>
+      </div>
+      <p class="caveat">Repo state: <code>80c3d18</code> — the binary behind these two transactions was built locally with <code>anchor build</code> from those sources, and no tracked file was modified after the build (by file timestamps). It is not a verifiable or reproducible build.</p>
     </div>
+
+    <p class="caveat"><strong>Correction, Oct 5, 2026:</strong> earlier versions of this page described the flow as ending in release/refund, called the page's devnet runs "verified end-to-end", and said "refund on FAIL". That overstated it. Runs A and B end at the recorded verdict (Passed, FailedSlippage). <code>release</code>, <code>refund</code> and <code>cancel</code> exist in the program, but I have not exercised them in tests or in either documented devnet run (Runs A and B). The page description, the social description and the flow sentence have been changed to match.</p>
 
     <p style="margin-top:14px;font-size:13px">This section is appended to, not rewritten. Once real swap-venue CPI is green, Run C joins here and the scope disclosure above is amended — never softened, only added to.</p>
   </section>
@@ -149,7 +162,7 @@ npm run get-commitment -- &lt;commitment-address&gt;</pre>
     <p>TrustRail's no-judge design descends from AuditAgent — a prior Colosseum submission, not selected — whose semantic-gate verdict taught me that settlement must be spec-matching, never judgment. Frozen history, public corrections: <a href="https://www.theauditagent.xyz/" style="color:var(--green)">theauditagent.xyz</a></p>
   </section>
 
-  <div class="doctrine">The page never claims more than the repo's latest commit; every embedded receipt has a commit that produced it.<br>Current main: <code>cfea675</code> · <a href="https://github.com/Portaudit/trustrail-pipelines" style="color:var(--green)">github.com/Portaudit/trustrail-pipelines</a></div>
+  <div class="doctrine">The page never claims more than the repo's latest commit; every embedded receipt has a commit that produced it.<br>Current main: <code>162bd9e</code> · Deployed program code: <code>80c3d18</code> · <a href="https://github.com/Portaudit/trustrail-pipelines" style="color:var(--green)">github.com/Portaudit/trustrail-pipelines</a></div>
 
   <img class="footer-art" src="assets/footer-art.png" alt="Sentinel artwork — © Ishvir and Company (Pty) Ltd">
   <footer>Status: pre-mainnet · © Ishvir and Company (Pty) Ltd · 🏛️</footer>
