@@ -7,7 +7,7 @@
 <meta name="description" content="TrustRail: escrow, staged verification, a recorded pass/fail verdict. Deterministic settlement for the agent economy on Solana — no LLM judge in the critical path.">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png"><link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta property="og:title" content="TrustRail — Deterministic Settlement Rails for AI Agent Swarms">
-<meta property="og:description" content="TrustRail settles outcomes. Not requests. Escrow, staged verification gates, a recorded pass/fail verdict — two documented devnet runs (Passed, FailedSlippage) decoded from on-chain state.">
+<meta property="og:description" content="TrustRail settles outcomes. Not requests. Escrow, staged verification gates, a recorded pass/fail verdict — documented devnet runs (Passed, FailedSlippage, recover from the FailedSlippage and Locked states, a staging-guard rejection, cancel) decoded from on-chain state.">
 <meta property="og:image" content="https://trustrail.live/assets/trustrail-emblem.png">
 <meta property="og:url" content="https://trustrail.live">
 <meta name="twitter:card" content="summary_large_image">
@@ -62,7 +62,7 @@ footer{margin-top:16px;color:var(--muted);font-size:14px;text-align:center}
     <div class="cards">
       <a class="card" href="#lineage"><strong>Lineage — AuditAgent</strong><small>TrustRail's no-judge design descends from a prior Colosseum submission, not selected. See what I learned.</small></a>
       <a class="card" href="https://github.com/Portaudit/trustrail-pipelines"><strong>Build log — repo + @TheTrustRail</strong><small>Receipts over vibes. Building in public on Solana.</small></a>
-      <a class="card" href="#verified"><strong>Verified — Sep 28 gate closed</strong><small>Full settlement flow on devnet, both outcomes, 5 real transactions each, independently decoded.</small></a>
+      <a class="card" href="#verified"><strong>Verified — Sep 28 gate closed</strong><small>Pipeline up to the recorded verdict (lock, withdraw, swap, proof), both outcomes, independently decoded.</small></a>
     </div>
   </div>
 
