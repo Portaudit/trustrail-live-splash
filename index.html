@@ -7,7 +7,7 @@
 <meta name="description" content="TrustRail: escrow, staged verification, a recorded pass/fail verdict. Deterministic settlement for the agent economy on Solana — no LLM judge in the critical path.">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png"><link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta property="og:title" content="TrustRail — Deterministic Settlement Rails for AI Agent Swarms">
-<meta property="og:description" content="TrustRail settles outcomes. Not requests. Escrow, staged verification gates, a recorded pass/fail verdict — documented devnet runs (Passed, FailedSlippage, recover from the FailedSlippage and Locked states, a staging-guard rejection, cancel) decoded from on-chain state.">
+<meta property="og:description" content="TrustRail settles outcomes. Not requests. Escrow, staged verification gates, a recorded pass/fail verdict — documented devnet runs (Passed, FailedSlippage, recover from the FailedSlippage and Locked states, a staging-guard rejection, cancel, release) decoded from on-chain state.">
 <meta property="og:image" content="https://trustrail.live/assets/trustrail-emblem.png">
 <meta property="og:url" content="https://trustrail.live">
 <meta name="twitter:card" content="summary_large_image">
@@ -76,7 +76,7 @@ footer{margin-top:16px;color:var(--muted);font-size:14px;text-align:center}
     <div class="tablewrap">
     <table>
       <tr><th>Program</th><th>ID</th><th>Last deployed slot</th></tr>
-      <tr><td><code>trustrail_pipelines</code></td><td><a href="https://explorer.solana.com/address/CgXidrtsV5nLkjPCYhZUPUuZUpmvekMKvDN9uh3ucoC8?cluster=devnet"><code>CgXidrts...ucoC8</code></a></td><td>507592632</td></tr>
+      <tr><td><code>trustrail_pipelines</code></td><td><a href="https://explorer.solana.com/address/CgXidrtsV5nLkjPCYhZUPUuZUpmvekMKvDN9uh3ucoC8?cluster=devnet"><code>CgXidrts...ucoC8</code></a></td><td>508283076</td></tr>
       <tr><td><code>mock_swap</code> (disclosed stand-in)</td><td><a href="https://explorer.solana.com/address/3qqN3ZXc1SPEtDLdn9Ek68r9YtDc1mBVgdhS7r48d9vJ?cluster=devnet"><code>3qqN3ZXc...9vJ</code></a></td><td>503154063</td></tr>
     </table>
     </div>
@@ -94,7 +94,7 @@ npm run execute-mock-swap
 npm run submit-proof
 npm run get-commitment -- &lt;commitment-address&gt;</pre>
     <p>These are the exact scripts in <code>worker/package.json</code> — nothing here is simplified from what's actually in the repo.</p>
-    <p>Recovery and cancel are not npm scripts. From <code>worker/</code>, with a separate keypair file as settler (it must not be the commitment's payer; the scripts refuse that, it is a script choice and not a program rule): <code>SETTLER_KEYPAIR=&lt;path&gt; npx tsx src/recover.ts &lt;commitment-address&gt;</code> or <code>SETTLER_KEYPAIR=&lt;path&gt; npx tsx src/cancel.ts &lt;commitment-address&gt;</code>. <code>recover</code> applies to a FailedSlippage commitment whose escrow was withdrawn, or to a Locked one with the escrow withdrawn and no proof stamped, once the deadline slot has passed. <code>cancel</code> applies to a Locked commitment whose escrow was never withdrawn, after the deadline.</p>
+    <p>Recovery and cancel are not npm scripts. From <code>worker/</code>, with a separate keypair file as settler (it must not be the commitment's payer; the scripts refuse that, it is a script choice and not a program rule): <code>SETTLER_KEYPAIR=&lt;path&gt; npx tsx src/recover.ts &lt;commitment-address&gt;</code> or <code>SETTLER_KEYPAIR=&lt;path&gt; npx tsx src/cancel.ts &lt;commitment-address&gt;</code>. <code>recover</code> applies to a FailedSlippage commitment whose escrow was withdrawn, or to a Locked one with the escrow withdrawn and no proof stamped, once the deadline slot has passed. <code>cancel</code> applies to a Locked commitment whose escrow was never withdrawn, after the deadline. <code>release</code> is run the same way: <code>SETTLER_KEYPAIR=&lt;path&gt; npx tsx src/release.ts &lt;commitment-address&gt;</code>. It applies to a Passed commitment, and unlike the other two it does not refuse a settler equal to the payer, because the program allows it.</p>
     <p>Run B used an input of 300000 and a floor of 500000. When it ran, the scripts hardcoded an input of 1,000,000. They now read <code>INPUT_AMOUNT</code>, <code>MIN_OUTPUT_AMOUNT</code> and <code>DEADLINE_SLOTS</code> from the environment (defaults 1,000,000, 500,000 and 5000 slots), so Run B's input can be reproduced, and Run C used <code>INPUT_AMOUNT=250000 DEADLINE_SLOTS=900</code>.</p>
     <p>Optional: set <code>RPC_URL</code> to your own devnet RPC endpoint (the public devnet endpoint can fail under load). If unset, the scripts fall back to the public devnet.</p>
   </section>
@@ -194,7 +194,7 @@ npm run get-commitment -- &lt;commitment-address&gt;</pre>
         commitment: <a href="https://explorer.solana.com/address/5zrxT6AdAfms6UbYKipi4AVxo4Yp4cXXNmN9RoyPhre2?cluster=devnet"><code>5zrxT6Ad...yPhre2</code></a><br>
         final state: <code>status: Passed</code>
       </div>
-      <p>This run reached Passed. I left it unreleased on purpose: <code>release</code> has not been exercised in any documented devnet run. The <code>proofTx</code> field in the decoded account is random bytes, not a transaction, so none of the receipts cite it.</p>
+      <p>This run reached Passed. I left it unreleased on purpose at the time, and released it on Oct 7 (see Slice 3 below). The <code>proofTx</code> field in the decoded account is random bytes, not a transaction, so none of the receipts cite it.</p>
       <div class="tablewrap">
       <table>
         <tr><th>Step</th><th>Tx</th></tr>
@@ -207,7 +207,28 @@ npm run get-commitment -- &lt;commitment-address&gt;</pre>
       <p class="caveat">Repo state: <code>457165a</code> — same build note as Run C.</p>
     </div>
 
+    <div class="run">
+      <h3 class="passed">Slice 3 — release with an escrow sweep (Oct 7)</h3>
+      <div class="meta">
+        Upgrade to the Slice 3 program: last deployed slot <code>508283076</code>. Binary 268368 bytes, sha256 <code>a50c98d07dc0bdaf7aa560d3ff4f2b5246bb2e447f81069e4f61bda96f40a798</code>.
+      </div>
+      <p><code>release</code> now sweeps any input token left in escrow to the payer before closing it, which removes the lock-up where one donated token made <code>release</code> fail at the escrow close. Before the upgrade I donated one input token to the escrow of an older Passed commitment (<code>2UmAP7rZ...</code>). With the deployed Slice 2 program, a simulated release failed at the escrow close with token error 0xb, and nothing was sent. After the upgrade the same commitment released and the payer received the donated token. Run D, which had no dust, was then released too. Both releases are Finalized. The swap in these runs is the disclosed <code>mock_swap</code> stand-in, not a real venue.</p>
+      <div class="tablewrap">
+      <table>
+        <tr><th>Step</th><th>Tx</th></tr>
+        <tr><td>program upgrade (adds the sweep)</td><td><a href="https://explorer.solana.com/tx/43bV1pbL4aXK3zVTjskPsRBQqyFv68KLp8cTyLnBtYYD9JCmaAgBcMiUYnXTnu8wAp6tC8cUiC2M5T1ZEA9Q8EJC?cluster=devnet"><code>43bV1pbL...A9Q8EJC</code></a></td></tr>
+        <tr><td>donate 1 input token to <code>2UmAP7rZ...</code> escrow</td><td><a href="https://explorer.solana.com/tx/2LbX5LRuVfyWCPLgkRxJRNADzpKkYuhbQfKjckq79S6noaNNCK1mXeKoU1JgGKG66Ez4d1N5wUgYZhCfYp6pbFG3?cluster=devnet"><code>2LbX5LRu...p6pbFG3</code></a></td></tr>
+        <tr><td>release <code>2UmAP7rZ...</code> (slot 508283971)</td><td><a href="https://explorer.solana.com/tx/NQ16U67mCyRjnomJWW5AoaMXWkoa3DFFHACE78qmrabVYnJEVc6oXUcGgNDHYsYw8PpYE14i4Wec8YXPDP6mFK6?cluster=devnet"><code>NQ16U67m...DP6mFK6</code></a></td></tr>
+        <tr><td>release Run D (slot 508284268)</td><td><a href="https://explorer.solana.com/tx/2kU4tMx6yU9LGWosVZiXhZ3SiuAq5NvmvBvD99m1FUYMRdXXbYdKdLk5i9YVeKCXJEqrTPx2NWo8xe4bX7a4WrQR?cluster=devnet"><code>2kU4tMx6...7a4WrQR</code></a></td></tr>
+      </table>
+      </div>
+      <p>Before: escrow 1, payer input 1149999, payer output 300000. After: escrow and output accounts closed, status Released, payer input 1150000 (the donated unit), payer output 1300000. Run D: escrow 0, payer input unchanged at 1150000, payer output 1300000 to 2300000, status Released.</p>
+      <p class="caveat">Repo state: <code>7ede6d0</code> — the deployed binary was built locally from that commit, with a clean tree. A dump of the buffer matched the hash before the upgrade, and a dump of the deployed program matched it after, with no non-zero padding. It is not a reproducible build. The output-donation variant of the lock-up is covered in litesvm only, not on devnet.</p>
+    </div>
+
     <p class="caveat"><strong>Correction, Oct 5, 2026:</strong> earlier versions of this page described the flow as ending in release/refund, called the page's devnet runs "verified end-to-end", and said "refund on FAIL". That overstated it. Run A and Run D end at Passed; Run B reached FailedSlippage and was then recovered; Run C was recovered after its deadline; Run C2 was cancelled after its deadline. <code>cancel</code> is now exercised: in the litesvm tests and in devnet Run C2. <code>release</code> and <code>refund</code> exist in the program, but I have not exercised them in any documented devnet run. <code>refund</code> is reachable only for a FailedSlippage commitment whose escrow was never withdrawn, and the normal worker flow withdraws first, so those runs exit through <code>recover</code>. The page description, the social description and the flow sentence have been changed to match. None of this shows a complete settlement, release included, working end to end.</p>
+
+    <p class="caveat"><strong>Amendment, Oct 7, 2026:</strong> the correction above is kept as written. Since then <code>release</code> has run on devnet twice, in the Slice 3 section above, both Finalized and both against the disclosed <code>mock_swap</code> stand-in. <code>refund</code> has still not run on devnet. Fifteen older commitments remain Passed and unreleased. The fee is a design only and is not implemented. This is a documented devnet flow of lock, withdraw, mock swap, proof and release, not a claim about any production swap venue.</p>
 
     <p style="margin-top:14px;font-size:13px">This section is appended to, not rewritten. Once real swap-venue CPI is green, a run against it joins here and the scope disclosure above is amended — never softened, only added to.</p>
   </section>
@@ -217,7 +238,7 @@ npm run get-commitment -- &lt;commitment-address&gt;</pre>
     <p>TrustRail's no-judge design descends from AuditAgent — a prior Colosseum submission, not selected — whose semantic-gate verdict taught me that settlement must be spec-matching, never judgment. Frozen history, public corrections: <a href="https://www.theauditagent.xyz/" style="color:var(--green)">theauditagent.xyz</a></p>
   </section>
 
-  <div class="doctrine">The page never claims more than the repo's latest commit; every embedded receipt has a commit that produced it.<br>Current main: <code>5bad864</code> · Deployed program code: <code>457165a</code> · <a href="https://github.com/Portaudit/trustrail-pipelines" style="color:var(--green)">github.com/Portaudit/trustrail-pipelines</a></div>
+  <div class="doctrine">The page never claims more than the repo's latest commit; every embedded receipt has a commit that produced it.<br>Current main: <code>f1249ad</code> · Deployed program code: <code>7ede6d0</code> · <a href="https://github.com/Portaudit/trustrail-pipelines" style="color:var(--green)">github.com/Portaudit/trustrail-pipelines</a></div>
 
   <img class="footer-art" src="assets/footer-art.png" alt="Sentinel artwork — © Ishvir and Company (Pty) Ltd">
   <footer>Status: pre-mainnet · © Ishvir and Company (Pty) Ltd · 🏛️</footer>
