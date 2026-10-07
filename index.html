@@ -210,7 +210,7 @@ npm run get-commitment -- &lt;commitment-address&gt;</pre>
     <div class="run">
       <h3 class="passed">Slice 3 — release with an escrow sweep (Oct 7)</h3>
       <div class="meta">
-        Upgrade to the Slice 3 program: last deployed slot <code>508283076</code>. Binary 268368 bytes, sha256 <code>a50c98d07dc0bdaf7aa560d3ff4f2b5246bb2e447f81069e4f61bda96f40a798</code>.
+        Upgrade to the Slice 3 program: last deployed slot <code>508283076</code>. Binary 268368 bytes, sha256 <code style="overflow-wrap:anywhere;word-break:break-all">a50c98d07dc0bdaf7aa560d3ff4f2b5246bb2e447f81069e4f61bda96f40a798</code>.
       </div>
       <p><code>release</code> now sweeps any input token left in escrow to the payer before closing it, which removes the lock-up where one donated token made <code>release</code> fail at the escrow close. Before the upgrade I donated one input token to the escrow of an older Passed commitment (<code>2UmAP7rZ...</code>). With the deployed Slice 2 program, a simulated release failed at the escrow close with token error 0xb, and nothing was sent. After the upgrade the same commitment released and the payer received the donated token. Run D, which had no dust, was then released too. Both releases are Finalized. The swap in these runs is the disclosed <code>mock_swap</code> stand-in, not a real venue.</p>
       <div class="tablewrap">
