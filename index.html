@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TrustRail — Deterministic Settlement Rails for AI Agent Swarms</title>
+<title>TrustRail — Deterministic settlement for AI agent commerce on Solana</title>
 <meta name="description" content="TrustRail: escrow, staged verification, a recorded pass/fail verdict. Deterministic settlement for the agent economy on Solana — no LLM judge in the critical path.">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png"><link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-<meta property="og:title" content="TrustRail — Deterministic Settlement Rails for AI Agent Swarms">
+<meta property="og:title" content="TrustRail — Deterministic settlement for AI agent commerce on Solana">
 <meta property="og:description" content="TrustRail settles outcomes. Not requests. Escrow, staged verification gates, a recorded pass/fail verdict — documented devnet runs (Passed, FailedSlippage, recover from the FailedSlippage and Locked states, a staging-guard rejection, cancel, release) decoded from on-chain state.">
 <meta property="og:image" content="https://trustrail.live/assets/trustrail-emblem.png">
 <meta property="og:url" content="https://trustrail.live">
@@ -56,7 +56,7 @@ footer{margin-top:16px;color:var(--muted);font-size:14px;text-align:center}
   <div class="hero">
     <img class="emblem" src="assets/trustrail-emblem.webp" alt="TrustRail emblem — shield with settlement rails">
     <h1 class="brand">TrustRail</h1>
-    <p class="brandline">Deterministic Settlement Rails for AI Agent Swarms</p>
+    <p class="brandline">Deterministic settlement for AI agent commerce on Solana</p>
     <p class="line"><b>TrustRail settles outcomes.</b> Not requests.</p>
 
     <div class="cards">
@@ -68,7 +68,7 @@ footer{margin-top:16px;color:var(--muted);font-size:14px;text-align:center}
 
   <section id="disclosure">
     <h2>Scope disclosure</h2>
-    <p>The swap step in every run below executes against <strong>mock_swap</strong>, a program I built and deployed myself as an explicit stand-in for a real swap venue (fixed-rate, real token transfers, real failure on insufficient pool liquidity — not a simulation). It is not Orca, Jupiter, Raydium, or any production DEX. Full detail: <a href="https://github.com/Portaudit/trustrail-pipelines/blob/main/docs/KNOWN_LIMITATIONS.md" style="color:var(--green)">KNOWN_LIMITATIONS.md</a>.</p>
+    <p>The swap step in every run below that includes one executes against <strong>mock_swap</strong>, a program I built and deployed myself as an explicit stand-in for a real swap venue (fixed 1:1 rate and pool liquidity seeded once by a trusted signer, per the source; real token transfers, real failure on insufficient pool liquidity — not a simulation). Run C, Run C2 and the refund run never reached a swap. It is not Orca, Jupiter, Raydium, or any production DEX. Passed attests only that the output account held at least the minimum, not that a swap happened, and the worker or the staging-key holder chooses where swap output lands; the program does not enforce it. Full detail: <a href="https://github.com/Portaudit/trustrail-pipelines/blob/main/docs/KNOWN_LIMITATIONS.md" style="color:var(--green)">KNOWN_LIMITATIONS.md</a>.</p>
   </section>
 
   <section id="programs">
@@ -101,7 +101,7 @@ npm run get-commitment -- &lt;commitment-address&gt;</pre>
 
   <section id="verified">
     <h2>Verified runs</h2>
-    <p>Each run below is the flow up to the recorded verdict — commitment → escrow withdrawal → swap → deterministic verification (Passed or FailedSlippage) — independently decoded from raw on-chain account bytes, not inferred from script output. Five transactions per run: creating the staging account is its own step, separate from the swap execution.</p>
+    <p>Runs A, B and D follow the flow up to the recorded verdict — commitment → escrow withdrawal → swap → deterministic verification (Passed or FailedSlippage) — independently decoded from raw on-chain account bytes, not inferred from script output. Runs A and B list five transactions each: creating the staging account is its own step, separate from the swap execution. Run D lists four. Run C, Run C2 and the refund run never reached a swap and are described in their own sections.</p>
 
     <div class="run">
       <h3 class="passed">Run A — Passed</h3>
@@ -247,7 +247,7 @@ npm run get-commitment -- &lt;commitment-address&gt;</pre>
 
     <p class="caveat"><strong>Correction, Oct 5, 2026:</strong> earlier versions of this page described the flow as ending in release/refund, called the page's devnet runs "verified end-to-end", and said "refund on FAIL". That overstated it. Run A and Run D end at Passed; Run B reached FailedSlippage and was then recovered; Run C was recovered after its deadline; Run C2 was cancelled after its deadline. <code>cancel</code> is now exercised: in the litesvm tests and in devnet Run C2. <code>release</code> and <code>refund</code> exist in the program, but I have not exercised them in any documented devnet run. <code>refund</code> is reachable only for a FailedSlippage commitment whose escrow was never withdrawn, and the normal worker flow withdraws first, so those runs exit through <code>recover</code>. The page description, the social description and the flow sentence have been changed to match. None of this shows a complete settlement, release included, working end to end.</p>
 
-    <p class="caveat"><strong>Amendment, Oct 7, 2026:</strong> the correction above is kept as written, but its statement that <code>release</code> has not been exercised in any documented devnet run is superseded by this amendment. Since then <code>release</code> has run on devnet twice, in the Slice 3 section above, both Finalized and both against the disclosed <code>mock_swap</code> stand-in. <code>refund</code> has since run once on devnet, on a commitment that never reached the swap (Refund run above); it has not run in the normal flow. Fifteen older commitments remain Passed and unreleased. The fee is a design only and is not implemented. This is a documented devnet flow of lock, withdraw, mock swap, proof and release, not a claim about any production swap venue.</p>
+    <p class="caveat"><strong>Amendment, Oct 7, 2026:</strong> the correction above is kept as written, but its statement that <code>release</code> has not been exercised in any documented devnet run is superseded by this amendment. Since then <code>release</code> has run on devnet twice, in the Slice 3 section above, both Finalized and both against the disclosed <code>mock_swap</code> stand-in. <code>refund</code> has since run once on devnet, on a commitment that never reached the swap (Refund run above); it has not run in the normal flow. Fifteen older commitments remained Passed and unreleased in a listing at slot 508312883, taken before the refund run. The fee is a design only and is not implemented. This is a documented devnet flow of lock, withdraw, mock swap, proof and release, not a claim about any production swap venue.</p>
 
     <p style="margin-top:14px;font-size:13px">This section is appended to, not rewritten. Once a real swap-venue integration is green, a run against it joins here and the scope disclosure above is amended — never softened, only added to.</p>
   </section>
@@ -257,7 +257,7 @@ npm run get-commitment -- &lt;commitment-address&gt;</pre>
     <p>TrustRail's no-judge design descends from AuditAgent — a prior Colosseum submission, not selected — whose semantic-gate verdict taught me that settlement must be spec-matching, never judgment. Frozen history, public corrections: <a href="https://www.theauditagent.xyz/" style="color:var(--green)">theauditagent.xyz</a></p>
   </section>
 
-  <div class="doctrine">The page never claims more than the repo's latest commit; every embedded receipt has a commit that produced it.<br>Current main: <code>51be7fe</code> · Deployed program code: <code>7ede6d0</code> · <a href="https://github.com/Portaudit/trustrail-pipelines" style="color:var(--green)">github.com/Portaudit/trustrail-pipelines</a></div>
+  <div class="doctrine">The page never claims more than the repo's latest commit; every embedded receipt has a commit that produced it.<br>Current main: <code>49b63ad</code> · Deployed program code: <code>7ede6d0</code> · <a href="https://github.com/Portaudit/trustrail-pipelines" style="color:var(--green)">github.com/Portaudit/trustrail-pipelines</a></div>
 
   <img class="footer-art" src="assets/footer-art.png" alt="Sentinel artwork — © Ishvir and Company (Pty) Ltd">
   <footer>Status: pre-mainnet · © Ishvir and Company (Pty) Ltd · 🏛️</footer>
